@@ -1,0 +1,190 @@
+formatter: "markdown"
+
+version: ""
+
+header-from: main.tf
+
+footer-from: ""
+
+recursive:
+  enabled: false
+  path: modules
+
+sections:
+  hide: []
+  show: []
+
+content: |-
+  {{ .Header }}
+
+  ## Features
+
+  This Terraform module provides comprehensive AWS EC2 compute solutions with three specialized submodules:
+
+  - **basic_instance**: Simple EC2 instance provisioning with essential configurations
+  - **asg**: Auto Scaling Groups with launch templates and scaling policies
+  - **advanced_instance**: Full-featured EC2 instances with advanced configurations including EBS volumes, network interfaces, and IAM roles
+
+  ## Usage
+
+  ### Basic Instance
+
+  ```hcl
+  module "ec2_basic" {
+    source = "./modules/basic_instance"
+
+    name          = "web-server"
+    ami_id        = "ami-xxxxx"
+    instance_type = "t3.micro"
+    subnet_id     = "subnet-xxxxx"
+    
+    security_group_ids = ["sg-xxxxx"]
+    
+    tags = {
+      Environment = "dev"
+      Project     = "myapp"
+    }
+  }
+  ```
+
+  ### Auto Scaling Group
+
+  ```hcl
+  module "asg" {
+    source = "./modules/asg"
+
+    name_prefix = "web-asg"
+    environment = "prod"
+
+    ami_id             = "ami-xxxxx"
+    instance_type      = "t3.micro"
+    security_group_ids = ["sg-xxxxx"]
+    
+    min_size         = 2
+    max_size         = 10
+    desired_capacity = 3
+    
+    vpc_zone_identifier = ["subnet-xxxxx", "subnet-yyyyy"]
+    
+    enable_target_tracking_scaling = true
+    target_tracking_metric_type    = "cpu"
+    target_value                   = 70.0
+  }
+  ```
+
+  ### Advanced Instance
+
+  ```hcl
+  module "ec2_advanced" {
+    source = "./modules/advanced_instance"
+
+    name          = "app-server"
+    ami_id        = "ami-xxxxx"
+    instance_type = "t3.medium"
+    subnet_id     = "subnet-xxxxx"
+    
+    security_group_ids = ["sg-xxxxx"]
+    
+    iam_instance_profile = "my-instance-profile"
+    
+    ebs_volumes = [
+      {
+        device_name = "/dev/sdf"
+        volume_type = "gp3"
+        volume_size = 100
+        encrypted   = true
+      }
+    ]
+    
+    enable_detailed_monitoring = true
+    
+    tags = {
+      Environment = "prod"
+      Application = "backend"
+    }
+  }
+  ```
+
+  ## Examples
+
+  See the [examples](./examples) directory for complete working examples:
+  - [single-instance](./examples/single-instance) - Basic EC2 instance deployment
+  - [asg](./examples/asg) - Auto Scaling Group with load balancing
+
+  ## Modules
+
+  ### [basic_instance](./modules/basic_instance)
+  Simple EC2 instance provisioning with core features.
+
+  ### [asg](./modules/asg)
+  Auto Scaling Groups with launch templates and scaling policies.
+
+  ### [advanced_instance](./modules/advanced_instance)
+  Full-featured EC2 instances with advanced configurations.
+
+  ## Testing
+
+  This module includes automated testing:
+  - **Terratest**: Go-based integration tests in `test/terratest/`
+  - **Smoke Tests**: Manual validation scripts in `test/smoke/`
+
+  Run tests:
+  ```bash
+  cd test/terratest
+  go test -v -timeout 30m
+  ```
+
+  ## CI/CD
+
+  GitHub Actions workflows:
+  - **validate.yml**: Terraform formatting, validation, and linting
+  - **terratest.yml**: Automated integration testing
+
+  {{ .Footer }}
+
+  ## Requirements
+
+  {{ .Requirements }}
+
+  ## Providers
+
+  {{ .Providers }}
+
+  ## License
+
+  MIT License - see [LICENSE](./LICENSE) for details.
+
+  ## Contributing
+
+  Contributions are welcome! Please open an issue or submit a pull request.
+
+output:
+  file: ""
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: name
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: false
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true

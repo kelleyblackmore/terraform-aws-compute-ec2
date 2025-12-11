@@ -1,0 +1,56 @@
+name: Terratest
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  terratest:
+    name: Terratest
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+          terraform_wrapper: false
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Download Go modules
+        working-directory: test/terratest
+        run: go mod download
+
+      - name: Run Terratest
+        working-directory: test/terratest
+        run: go test -v -timeout 30m
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+      - name: Cleanup on failure
+        if: failure()
+        working-directory: test/terratest
+        run: |
+          cd ../../examples/single-instance
+          terraform destroy -auto-approve || true
+          cd ../asg
+          terraform destroy -auto-approve || true
